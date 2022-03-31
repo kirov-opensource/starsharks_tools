@@ -1,7 +1,7 @@
 # 星鲨工具箱
 
 ## 快速上手
-> 1.点此[下载](https://https://github.com/kirov-opensource/starsharks_tools)星鲨工具箱
+> 1.下载星鲨工具箱 下载地址：[https://github.com/kirov-opensource/starsharks_tools/releases/download/1.0/StarsharksTools_1.0.zip](https://github.com/kirov-opensource/starsharks_tools/releases/download/1.0/StarsharksTools_1.0.zip)
 >
 > 2.解压
 >
@@ -13,9 +13,13 @@
 >
 > 6.使用`添加账号`或`批量生成账号`功能来添加账号，两个功能均需要输入**密钥**，**密钥**为打开程序时输入的**密钥**
 >
-> 7.
+> 7.使用`批量租鱼`感受一下吧
 
 ## 其他功能介绍
+
+### ADB登录
+* 可以直接通过ADB登录账号到雷电模拟器中
+* 点击之后如果没发现运行的雷电模拟器就关闭重新打开，这个读取有可能有延迟
 
 ### 鲨鱼管理
 * 打开管理页面后点击一次`加载鲨鱼`
@@ -33,7 +37,7 @@
 * 团队成员开发的 F12即可查看源码审计
 
 ### 批量租鱼
-* 请先使用`一键授权租鱼合约`，再进行租鱼，打开窗口后等下面复选框的SEA都加载出来后再点击自动刷新和自动租赁
+* 请先使用`一键授权租鱼合约`，再进行租鱼，打开窗口后**等下面账号复选框的SEA都加载出来后**再点击自动刷新和自动租赁
 
 ## 注意事项
 > 如果有主账号，就在添加时将主账号的别名更改为`main`，这样在租鱼的时候可以自动跳过
@@ -48,3 +52,12 @@
 
 ## 问题反馈
 ![wechatgroup](wechatgroup.png)
+
+## 贡献者
+> 此排名不分先后顺序
+
+[guoyongchang](https://github.com/guoyongchang)
+
+[FatTigerWang](https://github.com/FatTigerWang)
+
+[zhangshaoliang](https://github.com/zhangshaoliang)
