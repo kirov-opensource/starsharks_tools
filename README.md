@@ -51,7 +51,7 @@
 ## 谢谢老板祝老板发大财
 
 ## 问题反馈
-![wechatgroup](wechatgroup.png)
+![wechatgroup1](wechatgroup1.png)
 
 ## 贡献者
 > 此排名不分先后顺序
