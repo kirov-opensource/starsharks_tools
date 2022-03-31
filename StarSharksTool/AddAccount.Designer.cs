@@ -40,6 +40,7 @@
             this.textBox1.PlaceholderText = "一行一个钱包，格式为\"私钥 别名\"";
             this.textBox1.Size = new System.Drawing.Size(601, 437);
             this.textBox1.TabIndex = 0;
+            this.textBox1.Text = "一行一个钱包，格式为\"私钥 别名\"";
             // 
             // Save
             // 

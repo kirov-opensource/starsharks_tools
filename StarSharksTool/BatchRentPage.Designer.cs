@@ -298,7 +298,7 @@
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(297, 34);
             this.label4.TabIndex = 39;
-            this.label4.Text = "注意！！！钱包里不要多留SEA,只要有SEA就会无限租\r\n如果没有收全国请先使用主界面的批量授权";
+            this.label4.Text = "注意！！！钱包里不要多留SEA,只要有SEA就会无限租\r\n如果没有授权过请先使用主界面的批量授权";
             // 
             // BatchRentPage
             // 
