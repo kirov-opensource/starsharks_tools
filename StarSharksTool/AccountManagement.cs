@@ -87,7 +87,7 @@ namespace StarSharksTool
         private async Task LoadAccount()
         {
 
-            var appSettings = new AppSettings() { Proxy = String.Empty, Accounts = new List<AccountInfo>(), BSC_URL = "https://bsc-dataseed.binance.org/", OpenId = String.Empty, RENT = new RentSettings() { GAS_PRICE = 5, MARPLACE_PROXY = "", SEA_PRICE = 14 };
+            var appSettings = new AppSettings() { Proxy = String.Empty, Accounts = new List<AccountInfo>(), BSC_URL = "https://bsc-dataseed.binance.org/", OpenId = String.Empty, RENT = new RentSettings() { GAS_PRICE = 5, MARPLACE_PROXY = "", SEA_PRICE = 14 } };
             if (File.Exists(Global.SETTING_PATH))
             {
                 try
