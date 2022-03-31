@@ -128,36 +128,32 @@ namespace StarSharksTool
                 }
             });
 
-            //Task.Run(async () =>
-            //{
-            //    while (true)
-            //    {
-            //        try
-            //        {
-            //            await Task.Delay(5000);
-            //            bool isApproveContract = await Services.Service.IsApproveRentContract(this._accountModel.Account.Address);
-
-            //            MethodInvoker mi = new MethodInvoker(() =>
-            //            {
-            //                var textboxPrice = Convert.ToInt32(priceTextbox.Text);
-            //                if (isApproveContract == true)
-            //                {
-            //                    approveContract.Enabled = false;
-            //                }
-            //            });
-            //            BeginInvoke(mi);
-            //        }
-            //        catch (InvalidOperationException)
-            //        {
-            //            break;
-            //        }
-            //        catch (Exception e)
-            //        {
-
-            //        }
-            //    }
-            //});
-
+            Task.Run(async () =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        await Task.Delay(3);
+                        MethodInvoker mi = new MethodInvoker(() =>
+                        {
+                            if (NeedRentAccounts.Count == 0) {
+                                this.autoRent.Checked = false;
+                                this.checkBox1.Checked = false;
+                            }
+                        });
+                        BeginInvoke(mi);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        break;
+                    }
+                }
+            });
         }
 
 
@@ -246,7 +242,8 @@ namespace StarSharksTool
             dt.Columns.Add("RentId");
             dt.Columns.Add("RentPrice");
             dt.Columns.Add("Status");
-            foreach (var item in RentHistory)
+            var tmp = RentHistory.Reverse();
+            foreach (var item in tmp)
             {
                 dt.Rows.Add(item.Key.Item1, item.Key.Item2, item.Value);
             }

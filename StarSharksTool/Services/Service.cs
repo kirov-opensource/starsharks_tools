@@ -135,9 +135,14 @@ namespace StarSharksTool.Services
                 req.Speed = new List<int> { 1, 100 + r.Next(1, 50) };
                 req.RentExceptGain = new List<int> { 1, 13 + step + maxPrice };
                 req.Star = level;
+
                 if (step % 2 == 0)
                 {
                     req.Page = 2;
+                }
+
+                if (step % 4 == 0)
+                {
                     req.Sort = "LatestDesc";
                 }
 
@@ -345,18 +350,18 @@ namespace StarSharksTool.Services
             {
                 if (sharkResp.Message.StartsWith("shark was rented by others"))
                 {
-                    return (-1, sharkResp.Message);
+                    return (-1, "取消租赁:原因:" + sharkResp.Message);
                 }
                 else
                 {
-                    return (-2, sharkResp.Message);
+                    return (-2, "取消租赁:原因:" + sharkResp.Message);
                 }
             }
 
             var price = BigInteger.Parse(sharkResp.Data.Price) / 1000000000000000000;
-            if (price > maxPrice)
+            if (price != maxPrice)
             {
-                return (-1, "价格超了");
+                return (-1, "价格不一致");
             }
             int nonce = obj.Nonce;
             //lock (obj)

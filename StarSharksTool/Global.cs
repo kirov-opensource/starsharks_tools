@@ -56,6 +56,7 @@ namespace StarSharksTool
                 clientHandler.Proxy = new WebProxy(PROXY);
             }
             _httpClient = new HttpClient(clientHandler);
+            _httpClient.DefaultRequestHeaders.ConnectionClose = true;
             return _httpClient;
         }
 
@@ -71,6 +72,7 @@ namespace StarSharksTool
                     clientHandler.Proxy = new WebProxy(PROXY);
                 }
                 _httpClient = new HttpClient(clientHandler);
+                _httpClient.DefaultRequestHeaders.ConnectionClose = true;
                 return _httpClient;
             }
             set
