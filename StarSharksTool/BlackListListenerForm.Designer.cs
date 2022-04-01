@@ -47,8 +47,8 @@
             this.Controls.Add(this.txtStatus);
             this.Name = "BlackListListenerForm";
             this.Text = "BlackListListenerForm";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BlackListListenerForm_FormClosing);
-            this.Load += new System.EventHandler(this.BlackListListenerForm_Load);
+            //this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BlackListListenerForm_FormClosing);
+            //this.Load += new System.EventHandler(this.BlackListListenerForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
