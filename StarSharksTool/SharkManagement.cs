@@ -1,4 +1,5 @@
-﻿using StarSharksTool.Enums;
+﻿using Microsoft.Extensions.Logging;
+using StarSharksTool.Enums;
 using StarSharksTool.Models;
 using StarSharksTool.Services;
 
@@ -150,8 +151,9 @@ namespace StarSharksTool
             {
                 sharkDetailsDictionary = Global.Accounts.SelectMany(c => c.Sharks).ToDictionary(c => c.Key, c => c.Value);//await Service.GetSharkDetails(sharkIds);
             }
-            catch
+            catch(Exception ex)
             {
+                Global.GetLogger("SharkManagement").LogError(ex, ex.Message);
                 goto RELOAD_SHARK;
             }
             SharkDictionary = sharkDetailsDictionary;
@@ -189,20 +191,28 @@ namespace StarSharksTool
 
         private async Task SaveTransferRecord()
         {
-            var sharkTransferRecord = SharkDictionary.Keys.Select(c =>
+            try
             {
-                string oldAddress = Global.Accounts.FirstOrDefault(d => d.Sharks.ContainsKey(c)).Account.Address;
-                string newAddress = ListBoxDataDictionary.FirstOrDefault(d => d.Value.Contains(c)).Key.Name[..^7];
-                int tokenId = c;
-                SharkType tokenType = SharkType.Shark;
-                return new TransferRecord { From = oldAddress, To = newAddress, TokenId = tokenId, SharkType = tokenType };
-            }).Where(c => c.From != c.To).ToList();
-            if (sharkTransferRecord.Any())
+                var sharkTransferRecord = SharkDictionary.Keys.Select(c =>
+                {
+                    string oldAddress = Global.Accounts.FirstOrDefault(d => d.Sharks.ContainsKey(c)).Account.Address;
+                    string newAddress = ListBoxDataDictionary.FirstOrDefault(d => d.Value.Contains(c)).Key.Name[..^7];
+                    int tokenId = c;
+                    SharkType tokenType = SharkType.Shark;
+                    return new TransferRecord { From = oldAddress, To = newAddress, TokenId = tokenId, SharkType = tokenType };
+                }).Where(c => c.From != c.To).ToList();
+                if (sharkTransferRecord.Any())
+                {
+                    TotalCountLbl.BeginInvoke(() => TotalCountLbl.Text = sharkTransferRecord.Count.ToString());
+                    CurrentCountLbl.BeginInvoke(() => CurrentCountLbl.Text = "0");
+                    progressBar1.BeginInvoke(() => progressBar1.Value = 0);
+                    await service.TransferSharks(sharkTransferRecord).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
             {
-                TotalCountLbl.BeginInvoke(() => TotalCountLbl.Text = sharkTransferRecord.Count.ToString());
-                CurrentCountLbl.BeginInvoke(() => CurrentCountLbl.Text = "0");
-                progressBar1.BeginInvoke(() => progressBar1.Value = 0);
-                await service.TransferSharks(sharkTransferRecord).ConfigureAwait(false);
+                Global.GetLogger("SharkManagement").LogError(ex, ex.Message);
+                throw ex;
             }
         }
 

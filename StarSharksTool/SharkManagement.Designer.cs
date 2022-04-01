@@ -128,6 +128,7 @@
             this.refreshEnergyBtn.TabIndex = 8;
             this.refreshEnergyBtn.Text = "刷新体力";
             this.refreshEnergyBtn.UseVisualStyleBackColor = true;
+            this.refreshEnergyBtn.Visible = false;
             this.refreshEnergyBtn.Click += new System.EventHandler(this.refreshEnergyBtn_Click);
             // 
             // panel1
@@ -141,7 +142,7 @@
             this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.panel1.Location = new System.Drawing.Point(5, 718);
+            this.panel1.Location = new System.Drawing.Point(5, 716);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(1348, 45);
             this.panel1.TabIndex = 9;

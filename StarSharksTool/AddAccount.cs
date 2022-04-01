@@ -41,6 +41,11 @@ namespace StarSharksTool
                 {
                     appSettings.Accounts = new List<AccountInfo> { };
                 }
+                var privateKey = keyAndAlias[0];
+                if (privateKey.StartsWith("0x", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    privateKey = privateKey[2..];
+                }
                 appSettings.Accounts.Add(new AccountInfo { Alias = keyAndAlias[1].Trim(), PrivateKey = AESHelper.Encrypt(keyAndAlias[0].Trim()) });
             }
             File.WriteAllText(Global.SETTING_PATH, JsonConvert.SerializeObject(appSettings, Formatting.Indented));

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StarSharksTool.Exceptions;
 using System.Net;
 
@@ -9,7 +10,7 @@ namespace StarSharksTool
     {
         private static void ConfigureServices(ServiceCollection services)
         {
-            services.AddMemoryCache().AddDistributedMemoryCache();//.AddDistributedMemoryCache<IDistributedCache, >();
+            services.AddMemoryCache().AddDistributedMemoryCache();
         }
 
         /// <summary>
@@ -24,6 +25,10 @@ namespace StarSharksTool
             Application.SetCompatibleTextRenderingDefault(false);
 
             var services = new ServiceCollection();
+            services.AddLogging((builder) =>
+            {
+                builder.AddFile("Logs/log-{Date}.txt", isJson: true);
+            });
 
             ConfigureServices(services);
 
@@ -43,6 +48,7 @@ namespace StarSharksTool
             using (ServiceProvider serviceProvider = services.BuildServiceProvider())
             {
                 Global.Cache = serviceProvider.GetService<IDistributedCache>();
+                Global.LoggerFactory = serviceProvider.GetService<ILoggerFactory>();
                 var form1 = serviceProvider.GetRequiredService<AccountManagement>();
                 Application.Run(form1);
             }

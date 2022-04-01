@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.JsonRpc.Client;
 using Nethereum.Signer;
@@ -10,6 +11,7 @@ using NPOI.HSSF.UserModel;
 using NPOI.POIFS.Crypt;
 using NPOI.POIFS.FileSystem;
 using NPOI.XSSF.UserModel;
+using Serilog;
 using SharpAdbClient;
 using StarSharksTool.Contracts.ERC20;
 using StarSharksTool.Extensions;
@@ -82,6 +84,21 @@ namespace StarSharksTool
         {
             flowLayoutPanel1.BeginInvoke(() => flowLayoutPanel1.Controls.Clear());
             await LoadAccount();
+        }
+
+        private void DisableButton()
+        {
+            this.button2.Enabled = false;
+            this.button3.Enabled = false;
+            this.button1.Enabled = false;
+            this.batchRent.Enabled = false;
+        }
+        private void EnableButton()
+        {
+            this.button2.Enabled = true;
+            this.button3.Enabled = true;
+            this.button1.Enabled = true;
+            this.batchRent.Enabled = true;
         }
 
         private async Task LoadAccount()
@@ -178,8 +195,9 @@ namespace StarSharksTool
                         }
                         accountDetailInfo.Add(address, (sharkAccountInfo.Result, sharks.Result, seaBalanceOfFunctionReturn.Result, sssBalanceOfFunctionReturn.Result, bnbBalance.Result));
                     }
-                    catch
+                    catch(Exception e)
                     {
+                        Global.GetLogger("AccountManagement").LogError(e, e.Message);
                         goto GET_RETRY;
                     }
                 });
@@ -330,7 +348,7 @@ namespace StarSharksTool
                             Clipboard.SetDataObject(bscAccount.Address);
                         };
 
-                       
+
 
                         var groupBox = new GroupBox();
                         groupBox.Text = $"({alias}){bscAccount.Address[0..6]} **** {bscAccount.Address[^4..]}";
@@ -348,8 +366,9 @@ namespace StarSharksTool
                         Global.Accounts.Add(account);
                     }
                 }
-                catch
+                catch(Exception e)
                 {
+                    Global.GetLogger("AccountManagement").LogError(e, e.Message);
                     goto RETRY;
                 }
             }
@@ -377,7 +396,7 @@ namespace StarSharksTool
                 var content = await httpResponse.Content.ReadAsStringAsync();
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"https://www.starsharks.com/go/auth-api/account/base 失败: {content}");
+                    Global.GetLogger("AccountManagement").LogError($"https://www.starsharks.com/go/auth-api/account/base 失败: {content}");
                     throw new HttpRequestException();
                 }
                 var responseModel = JsonConvert.DeserializeObject<ResponseModel<AccountInfoModel>>(content);
@@ -400,7 +419,7 @@ namespace StarSharksTool
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     if (!httpResponse.IsSuccessStatusCode)
                     {
-                        Console.WriteLine($"https://www.starsharks.com/go/auth-api/account/sharks 失败: {content}");
+                        Global.GetLogger("AccountManagement").LogError($"https://www.starsharks.com/go/auth-api/account/sharks 失败: {content}");
                         throw new HttpRequestException();
                     }
                     var responseModel = JsonConvert.DeserializeObject<ResponseModel<PagenationModel<SharkModel>>>(content);
@@ -567,6 +586,7 @@ namespace StarSharksTool
                     }
                     catch (Exception e)
                     {
+                        Global.GetLogger("AccountManagement").LogError(e, e.Message);
                         MessageBox.Show(item.Alias + "授权失败，原因：" + e.Message);
                     }
                 }

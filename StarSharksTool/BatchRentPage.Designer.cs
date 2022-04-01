@@ -73,7 +73,7 @@
             // 
             // refreshBtn
             // 
-            this.refreshBtn.Location = new System.Drawing.Point(131, 3);
+            this.refreshBtn.Location = new System.Drawing.Point(131, 4);
             this.refreshBtn.Margin = new System.Windows.Forms.Padding(2);
             this.refreshBtn.Name = "refreshBtn";
             this.refreshBtn.Size = new System.Drawing.Size(71, 24);
@@ -255,6 +255,7 @@
             this.dynamicGasLbl.Size = new System.Drawing.Size(25, 17);
             this.dynamicGasLbl.TabIndex = 36;
             this.dynamicGasLbl.Text = "0.0";
+            this.dynamicGasLbl.Visible = false;
             // 
             // dynamicGas
             // 
@@ -266,6 +267,7 @@
             this.dynamicGas.TabIndex = 35;
             this.dynamicGas.Text = "动态GAS";
             this.dynamicGas.UseVisualStyleBackColor = true;
+            this.dynamicGas.Visible = false;
             this.dynamicGas.CheckedChanged += new System.EventHandler(this.dynamicGas_CheckedChanged);
             // 
             // maxDynamicGasPrice
@@ -279,6 +281,7 @@
             this.maxDynamicGasPrice.TabIndex = 37;
             this.maxDynamicGasPrice.Text = "最大动态GAS";
             this.maxDynamicGasPrice.UseVisualStyleBackColor = true;
+            this.maxDynamicGasPrice.Visible = false;
             // 
             // maxDynamicGasPriceTbx
             // 
@@ -288,6 +291,7 @@
             this.maxDynamicGasPriceTbx.Size = new System.Drawing.Size(75, 23);
             this.maxDynamicGasPriceTbx.TabIndex = 38;
             this.maxDynamicGasPriceTbx.Text = "8";
+            this.maxDynamicGasPriceTbx.Visible = false;
             // 
             // label4
             // 

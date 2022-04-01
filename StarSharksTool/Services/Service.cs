@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Signer;
 using Nethereum.Util;
@@ -42,63 +43,73 @@ namespace StarSharksTool.Services
 
         internal async Task TransferSharks(IEnumerable<TransferRecord> transferRecords)
         {
-            var groups = transferRecords.GroupBy(x => x.From);
-
-            foreach (var group in groups)
+            try
             {
-                var accountModel = Global.Accounts.FirstOrDefault(x => x.Account?.Address == group.Key);
-                if (accountModel == null)
-                {
-                    group.ToList().ForEach(x =>
-                    {
-                        OnTransferEvent(new TransferEventArgs
-                        {
-                            From = x.From,
-                            Successful = false,
-                            To = x.To,
-                            TokenId = x.TokenId
-                        });
-                    });
-                    continue;
-                }
+                var groups = transferRecords.GroupBy(x => x.From);
 
-                var web3 = new Web3(accountModel.Account, Global.BSC_URL);
-                web3.TransactionManager.UseLegacyAsDefault = true;
-                var contractHandler = web3.Eth.GetContractHandler(Global.SNFT_ADDRESS);
-                foreach (var transferRecord in group)
+                foreach (var group in groups)
                 {
-                    try
+                    var accountModel = Global.Accounts.FirstOrDefault(x => x.Account?.Address == group.Key);
+                    if (accountModel == null)
                     {
-                        var transferFromFunction = new TransferFromFunction();
-                        transferFromFunction.From = transferRecord!.From!;
-                        transferFromFunction.To = transferRecord!.To!;
-                        transferFromFunction.TokenId = transferRecord!.TokenId!;
-                        var transferFromFunctionTxnReceipt = await contractHandler.SendRequestAndWaitForReceiptAsync(transferFromFunction).ConfigureAwait(false);
-                        OnTransferEvent(new TransferEventArgs
-                        {
-                            From = transferRecord!.From!,
-                            Successful = transferFromFunctionTxnReceipt.Status == new Nethereum.Hex.HexTypes.HexBigInteger("1"),
-                            To = transferRecord!.To!,
-                            TokenId = transferRecord!.TokenId!
-                        });
-                    }
-                    catch (Exception)
-                    {
-                        try
+                        group.ToList().ForEach(x =>
                         {
                             OnTransferEvent(new TransferEventArgs
                             {
-                                From = transferRecord!.From!,
+                                From = x.From,
                                 Successful = false,
+                                To = x.To,
+                                TokenId = x.TokenId
+                            });
+                        });
+                        continue;
+                    }
+
+                    var web3 = new Web3(accountModel.Account, Global.BSC_URL);
+                    web3.TransactionManager.UseLegacyAsDefault = true;
+                    var contractHandler = web3.Eth.GetContractHandler(Global.SNFT_ADDRESS);
+                    foreach (var transferRecord in group)
+                    {
+                        try
+                        {
+                            var transferFromFunction = new TransferFromFunction();
+                            transferFromFunction.From = transferRecord!.From!;
+                            transferFromFunction.To = transferRecord!.To!;
+                            transferFromFunction.TokenId = transferRecord!.TokenId!;
+                            var transferFromFunctionTxnReceipt = await contractHandler.SendRequestAndWaitForReceiptAsync(transferFromFunction).ConfigureAwait(false);
+                            OnTransferEvent(new TransferEventArgs
+                            {
+                                From = transferRecord!.From!,
+                                Successful = transferFromFunctionTxnReceipt.Status == new Nethereum.Hex.HexTypes.HexBigInteger("1"),
                                 To = transferRecord!.To!,
                                 TokenId = transferRecord!.TokenId!
                             });
                         }
-                        catch (Exception)
+                        catch (Exception ex1)
                         {
+                            Global.GetLogger("Service").LogError(ex1, ex1.Message);
+                            try
+                            {
+                                OnTransferEvent(new TransferEventArgs
+                                {
+                                    From = transferRecord!.From!,
+                                    Successful = false,
+                                    To = transferRecord!.To!,
+                                    TokenId = transferRecord!.TokenId!
+                                });
+                            }
+                            catch (Exception ex2)
+                            {
+                                Global.GetLogger("Service").LogError(ex2, ex2.Message);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex){
+
+                Global.GetLogger("SharkManagement").LogError(ex, ex.Message);
+                throw ex;
             }
         }
         public static string FillZero(string hexValue, int targetLength = 64)
@@ -153,7 +164,7 @@ namespace StarSharksTool.Services
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     if (!httpResponse.IsSuccessStatusCode)
                     {
-                        Console.WriteLine($"{url} 失败: {content}");
+                        Global.GetLogger("Service").LogError($"{url} 失败: {content}");
                         return new MarketRentResponseModel { Data = new Models.RentModels.Data { Sharks = new List<Shark> { } } };
                     }
                     var responseModel = JsonConvert.DeserializeObject<MarketRentResponseModel>(content);
@@ -168,8 +179,9 @@ namespace StarSharksTool.Services
                     return responseModel;
                 }
             }
-            catch
+            catch(Exception e)
             {
+                Global.GetLogger("Service").LogError(e, e.Message);
                 return new MarketRentResponseModel { Data = new Models.RentModels.Data { Sharks = new List<Shark> { } } };
             }
         }
@@ -187,7 +199,7 @@ namespace StarSharksTool.Services
                 var content = await httpResponse.Content.ReadAsStringAsync();
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"{url} 失败: {content}");
+                    Global.GetLogger("Service").LogError($"{url} 失败: {content}");
                     //throw new HttpRequestException();
                     return await GetSharkWithdrawInfo(account);
                 }
@@ -208,7 +220,7 @@ namespace StarSharksTool.Services
                 var content = await httpResponse.Content.ReadAsStringAsync();
                 if (!httpResponse.IsSuccessStatusCode && httpResponse.StatusCode != System.Net.HttpStatusCode.Forbidden)
                 {
-                    Console.WriteLine($"https://www.starsharks.com/go/auth-api/market/rent-in 失败: {content}");
+                    Global.GetLogger("Service").LogError($"https://www.starsharks.com/go/auth-api/market/rent-in 失败: {content}");
                     throw new HttpRequestException();
                 }
                 var responseModel = JsonConvert.DeserializeObject<RentModel>(content);
@@ -241,40 +253,14 @@ namespace StarSharksTool.Services
                 var content = await httpResponse.Content.ReadAsStringAsync();
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"{uri} 失败: {content}");
+                    Global.GetLogger("Service").LogError($"获取鲨鱼详情失败：{uri} 失败: {content}");
                     throw new HttpRequestException();
                 }
                 var responseModel = JsonConvert.DeserializeObject<SharkDetailModel>(content);
                 return responseModel.Data;
             }
         }
-        #region PostData
-        /**
-         * 0x0bb180e1
-000000000000000000000000000000000000000000000003ce4052126d50fe03
-000000000000000000000000416f1d70c1c22608814d9f36c492efb3ba8cad4c
-0000000000000000000000006de042f15a86ee29066b732b09e8a4179f8d46e5
 
-0000000000000000000000000000000000000000000000000000000000000100 // unknown
-0000000000000000000000000000000000000000000000000000000000000180 // unknown
-00000000000000000000000000000000000000000000000000000000000001a0 // unknown
-
-0000000000000000000000000000000000000000000000000000000061ecec9c // deadline //2022-01-23 13:50:20
-00000000000000000000000000000000000000000000000000000000000001c0 // unknown
-0000000000000000000000000000000000000000000000000000000000000003 // unknown
-
-0000000000000000000000000000000000000000000000000000000000010859 // nftid
-0000000000000000000000000000000000000000000000000000000061ee3da4 // deadline //2022-01-24 13:48:20
-000000000000000000000000000000000000000000000000b469471f80140000 // price
-
-0000000000000000000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000000000000000000000000000041
-4f06448388ebee4c6768f5ae83f829dee5e88930ebe49ed0b7e7615c8122acf0
-3c76470be111dad82c834707e0511d86ffabda79b03355f1a2e876a0aa568f6c
-1c00000000000000000000000000000000000000000000000000000000000000
-        */
-        #endregion
         internal static async Task<bool> IsApproveRentContract(string rentAddress)
         {
             var postBody = new
@@ -301,7 +287,7 @@ namespace StarSharksTool.Services
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     Console.WriteLine($"{Global.BSC_URL} 失败: {content}");
-                    //throw new HttpRequestException();
+                    throw new HttpRequestException();
                 }
                 var responseModel = JsonConvert.DeserializeObject<JSONRPCResponseModel<string>>(content);
                 return new HexBigInteger(responseModel.Result).Value > 0;
@@ -478,7 +464,7 @@ namespace StarSharksTool.Services
             var signer1 = new EthereumMessageSigner();
             return signer1.EncodeUTF8AndSign(message, new EthECKey(privateKey));
         }
-        internal static async Task<(string WebsiteToken, string GameToken, string Address, Account Account, string Alias)> Login(Account account, string alias, Microsoft.Extensions.Caching.Distributed.IDistributedCache? cache)
+        internal static async Task<(string WebsiteToken, string GameToken, string Address, Account Account, string Alias)> Login(Account account, string alias, Microsoft.Extensions.Caching.Distributed.IDistributedCache? cache, int maxRetry = 0)
         {
             try
             {
@@ -504,8 +490,8 @@ namespace StarSharksTool.Services
                     content = await httpResponse.Content.ReadAsStringAsync();
                     if (!httpResponse.IsSuccessStatusCode)
                     {
-                        Console.WriteLine($"https://www.starsharks.com/go/api/login/verify-sign 失败: {content}");
-                        throw new HttpRequestException();
+                        Global.GetLogger("Service").LogError($"https://www.starsharks.com/go/api/login/verify-sign 失败: {content}");
+                        throw new HttpRequestException($"https://www.starsharks.com/go/api/login/verify-sign 失败: {content}");
                     }
                     var responseModel = JsonConvert.DeserializeObject<ResponseModel<LoginResponseModel>>(content);
                     await cache.SetStringAsync($"StarsharkToken:{account.Address.ToLower()}", content);
@@ -516,9 +502,10 @@ namespace StarSharksTool.Services
                     return await Login(account, alias, cache);
                 }
             }
-            catch
+            catch (Exception e)
             {
-                return await Login(account, alias, cache);
+                Global.GetLogger("Service").LogError(e, e.Message);
+                return await Login(account, alias, cache, maxRetry);
             }
         }
         internal static async Task<string> RandomString()
@@ -529,8 +516,8 @@ namespace StarSharksTool.Services
                 var content = await httpResponse.Content.ReadAsStringAsync();
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"https://www.starsharks.com/go/api/login/random-string 失败: {content}");
-                    throw new HttpRequestException();
+                    Global.GetLogger("Service").LogError($"https://www.starsharks.com/go/api/login/random-string 失败: {content}");
+                    throw new HttpRequestException($"https://www.starsharks.com/go/api/login/random-string 失败: {content}");
                 }
                 var responseModel = JsonConvert.DeserializeObject<ResponseModel<RandomStringModel>>(content);
                 return responseModel!.Data!.RandomString!;
@@ -552,7 +539,7 @@ namespace StarSharksTool.Services
                 var content = await httpResponse.Content.ReadAsStringAsync();
                 if (!httpResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"{url} 失败: {content}");
+                    Global.GetLogger("Service").LogError($"{url} 失败: {content}");
                     throw new HttpRequestException();
                 }
                 return true;
@@ -592,7 +579,7 @@ namespace StarSharksTool.Services
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     if (!httpResponse.IsSuccessStatusCode)
                     {
-                        Console.WriteLine($"{Global.BSC_URL} 失败: {content}");
+                        Global.GetLogger("Service").LogError($"{Global.BSC_URL} 失败: {content}");
                         //throw new HttpRequestException();
                     }
                     var responseModel = JsonConvert.DeserializeObject<JSONRPCResponseModel<LogModel[]>>(content);

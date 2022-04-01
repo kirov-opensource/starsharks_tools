@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using StarSharksTool.Models;
 using System.Net;
 
@@ -23,6 +24,7 @@ namespace StarSharksTool
             }
             return (DynamicGASPrice[seaPrice] + 0.001m);
         }
+
         internal static List<AccountModel> Accounts { get; set; } = new List<AccountModel>();
 
         internal const string SETTING_PATH = "./AppSettings.json";
@@ -82,5 +84,11 @@ namespace StarSharksTool
         }
 
         public static IDistributedCache? Cache { get; internal set; }
+        public static ILoggerFactory? LoggerFactory { get; internal set; }
+
+        internal static ILogger GetLogger(string? fullName)
+        {
+            return LoggerFactory.CreateLogger(fullName);
+        }
     }
 }

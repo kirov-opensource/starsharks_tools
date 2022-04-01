@@ -1,4 +1,5 @@
-﻿using SharpAdbClient;
+﻿using Microsoft.Extensions.Logging;
+using SharpAdbClient;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -58,6 +59,7 @@ namespace StarSharksTool
             }
             catch (Exception e)
             {
+                Global.GetLogger("ADBLogin").LogError(e, e.Message);
                 MessageBox.Show($"异常:{e.Message}");
             }
         }

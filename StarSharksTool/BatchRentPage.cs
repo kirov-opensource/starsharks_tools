@@ -1,4 +1,5 @@
-﻿using Nethereum.Web3;
+﻿using Microsoft.Extensions.Logging;
+using Nethereum.Web3;
 using StarSharksTool.Contracts.ERC20;
 using StarSharksTool.Models;
 using StarSharksTool.Models.RentModels;
@@ -137,7 +138,8 @@ namespace StarSharksTool
                         await Task.Delay(3);
                         MethodInvoker mi = new MethodInvoker(() =>
                         {
-                            if (NeedRentAccounts.Count == 0) {
+                            if (NeedRentAccounts.Count == 0)
+                            {
                                 this.autoRent.Checked = false;
                                 this.checkBox1.Checked = false;
                             }
@@ -163,66 +165,74 @@ namespace StarSharksTool
         }
         private async Task RefreshData()
         {
-            var textboxPrice = Convert.ToInt32(priceTextbox.Text);
-            var level = 1;
-            if (level1.Checked)
+            try
             {
-                level = 1;
-            }
-            else if (level2.Checked)
-            {
-                level = 2;
-            }
-            else if (level3.Checked)
-            {
-                level = 3;
-            }
-            var c = await Services.Service.GetMarketplace(textboxPrice, level, rentProxy.Text);
-            var model = c.Data.Sharks;
-            DataTable dt = new DataTable();
-            dt.Columns.Add(new DataColumn("Id"));
-            dt.Columns.Add(new DataColumn("Price"));
-            List<Task> autoRentTask = new List<Task>();
-            Random r = new Random();
-            if (model != null)
-            {
-                foreach (var item in model)
+
+                var textboxPrice = Convert.ToInt32(priceTextbox.Text);
+                var level = 1;
+                if (level1.Checked)
                 {
-                    if (BlackIds.Contains(item.Attr.SharkId))
-                        continue;
-                    var price = (int)Convert.ToDouble(item.Sheet.RentExceptGain);
-                    for (int i = 0; i < NeedRentAccounts.Count; i++)
+                    level = 1;
+                }
+                else if (level2.Checked)
+                {
+                    level = 2;
+                }
+                else if (level3.Checked)
+                {
+                    level = 3;
+                }
+                var c = await Services.Service.GetMarketplace(textboxPrice, level, rentProxy.Text);
+                var model = c.Data.Sharks;
+                DataTable dt = new DataTable();
+                dt.Columns.Add(new DataColumn("Id"));
+                dt.Columns.Add(new DataColumn("Price"));
+                List<Task> autoRentTask = new List<Task>();
+                Random r = new Random();
+                if (model != null)
+                {
+                    foreach (var item in model)
                     {
-                        if (this.autoRent.Checked == true && price <= textboxPrice && NeedRentAccounts.Count > 0)
+                        if (BlackIds.Contains(item.Attr.SharkId))
+                            continue;
+                        var price = (int)Convert.ToDouble(item.Sheet.RentExceptGain);
+                        for (int i = 0; i < NeedRentAccounts.Count; i++)
                         {
-                            var shark = model[r.Next(0, model.Count - 1)];
-                            if (!Services.Service.RentedSharkIds.Contains(shark.Attr.SharkId))
+                            if (this.autoRent.Checked == true && price <= textboxPrice && NeedRentAccounts.Count > 0)
                             {
-                                autoRentTask.Add(this.RentShark(shark.Attr.SharkId, price));
+                                var shark = model[r.Next(0, model.Count - 1)];
+                                if (!Services.Service.RentedSharkIds.Contains(shark.Attr.SharkId))
+                                {
+                                    autoRentTask.Add(this.RentShark(shark.Attr.SharkId, price));
+                                }
                             }
                         }
+                        var dr = dt.NewRow();
+                        dr["Id"] = item.Attr.SharkId.ToString();
+                        dr["Price"] = item.Sheet.RentExceptGain;
+                        dt.Rows.Add(dr);
                     }
-                    var dr = dt.NewRow();
-                    dr["Id"] = item.Attr.SharkId.ToString();
-                    dr["Price"] = item.Sheet.RentExceptGain;
-                    dt.Rows.Add(dr);
+                }
+
+                this.dataGridView1.DataSource = dt;
+
+                if (dataGridView1.Columns.GetLastColumn(DataGridViewElementStates.None, DataGridViewElementStates.None).Name != "rentBtnColumn")
+                {
+                    DataGridViewButtonColumn rentBtnColumn = new DataGridViewButtonColumn();
+                    rentBtnColumn.Text = "租他";
+                    rentBtnColumn.HeaderText = "操作";
+                    rentBtnColumn.Name = "rentBtnColumn";
+                    rentBtnColumn.DefaultCellStyle.NullValue = "租它";
+                    dataGridView1.Columns.Add(rentBtnColumn);
+                }
+                if (autoRentTask.Any())
+                {
+                    Task.Run(async () => { await Task.WhenAll(autoRentTask); });
                 }
             }
-
-            this.dataGridView1.DataSource = dt;
-
-            if (dataGridView1.Columns.GetLastColumn(DataGridViewElementStates.None, DataGridViewElementStates.None).Name != "rentBtnColumn")
+            catch (Exception e)
             {
-                DataGridViewButtonColumn rentBtnColumn = new DataGridViewButtonColumn();
-                rentBtnColumn.Text = "租他";
-                rentBtnColumn.HeaderText = "操作";
-                rentBtnColumn.Name = "rentBtnColumn";
-                rentBtnColumn.DefaultCellStyle.NullValue = "租它";
-                dataGridView1.Columns.Add(rentBtnColumn);
-            }
-            if (autoRentTask.Any())
-            {
-                Task.Run(async () => { await Task.WhenAll(autoRentTask); });
+                Global.GetLogger("BatchRentPage").LogError(e, e.Message);
             }
         }
 
@@ -258,7 +268,8 @@ namespace StarSharksTool
             do
             {
                 retry++;
-                if (retry > 5) {
+                if (retry > 5)
+                {
                     return;
                 }
                 if (NeedRentAccounts.Count == RentLock.Count)
@@ -293,7 +304,8 @@ namespace StarSharksTool
                 if (maxDynamicGasPrice.Checked == true)
                 {
                     var maxDynamicGasPrice = Convert.ToDecimal(maxDynamicGasPriceTbx.Text);
-                    if (currentDynamicGasPrice > maxDynamicGasPrice) {
+                    if (currentDynamicGasPrice > maxDynamicGasPrice)
+                    {
                         return;
                     }
                 }
@@ -330,31 +342,18 @@ namespace StarSharksTool
             RerenderRentHistory();
         }
 
-        //private async void approveContract_Click(object sender, EventArgs e)
-        //{
-        //    var resp = await Services.Service.ApproveContract(this._accountModel.Account.Address);
-        //    if (resp)
-        //    {
-        //        MessageBox.Show("授权成功");
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("授权失败");
-        //    }
-        //}
-
         private async void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
             if (checkBox1.Checked == true)
             {
-                //Task.Run(() =>
-                //{
                 try
                 {
                     await AutoRefresh();
                 }
-                catch { }
-                //}).ConfigureAwait(false);
+                catch (Exception ex)
+                {
+                    Global.GetLogger("BatchRentPage").LogError(ex, ex.Message);
+                }
             }
         }
         private async Task AutoRefresh()
