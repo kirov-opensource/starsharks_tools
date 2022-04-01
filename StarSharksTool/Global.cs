@@ -90,5 +90,10 @@ namespace StarSharksTool
         {
             return LoggerFactory.CreateLogger(fullName);
         }
+        public static int nonce { get; set; } = 0;
+        internal static object Nonce()
+        {
+            return ++nonce;
+        }
     }
 }

@@ -134,7 +134,7 @@ namespace StarSharksTool.Services
         {
             try
             {
-                var url = "https://www.starsharks.com/go/api/market/sharks";
+                var url = $"https://www.starsharks.com/go/api/market/sharks?nonce={Global.Nonce()}";
                 var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
                 //httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", account.JWTToken);
                 var req = new MarketRentRequestModel();
@@ -187,7 +187,7 @@ namespace StarSharksTool.Services
         }
         internal async static Task<WithdrawResponseModel> GetSharkWithdrawInfo(AccountModel account)
         {
-            var url = "https://www.starsharks.com/go/auth-api/account/withdraw-sea-v2";
+            var url = $"https://www.starsharks.com/go/auth-api/account/withdraw-sea-v2?nonce={Global.Nonce()}";
             var sharkResp = new WithdrawResponseModel();
             //Global.HTTPCLIENT
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
@@ -211,7 +211,7 @@ namespace StarSharksTool.Services
         {
             var sharkResp = new RentModel();
             //Global.HTTPCLIENT
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "https://www.starsharks.com/go/auth-api/market/rent-in");
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"https://www.starsharks.com/go/auth-api/market/rent-in?nonce={Global.Nonce()}");
             httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", account.WebsiteToken);
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(new { shark_id = sharkId }), Encoding.UTF8, "application/json");
             var client = Global.HTTPCLIENT;
@@ -245,7 +245,7 @@ namespace StarSharksTool.Services
 
         public static async Task<SharkModel> GetSharkDetail(int sharkId)
         {
-            var uri = $"https://www.starsharks.com/go/api/market/shark-detail?shark_id={sharkId}";
+            var uri = $"https://www.starsharks.com/go/api/market/shark-detail?shark_id={sharkId}&nonce={Global.Nonce()}";
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
             var client = Global.HTTPCLIENT;
             {

@@ -388,7 +388,7 @@ namespace StarSharksTool
 
         private async Task<AccountInfoModel> GetAccountInfo(string token)
         {
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://www.starsharks.com/go/auth-api/account/base");
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"https://www.starsharks.com/go/auth-api/account/base?nonce={Global.Nonce()}");
             httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var client = Global.HTTPCLIENT;
             {
@@ -406,11 +406,11 @@ namespace StarSharksTool
 
         private async Task<IList<SharkModel>> GetSharks(string token, string address)
         {
+        RETRY:
             var query = new QuerySharksModel();
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "https://www.starsharks.com/go/auth-api/account/sharks");
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"https://www.starsharks.com/go/auth-api/account/sharks?nonce={Global.Nonce()}");
             httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(query), Encoding.UTF8, "application/json");
-        RETRY:
             try
             {
                 var client = Global.HTTPCLIENT;
