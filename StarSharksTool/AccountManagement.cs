@@ -26,6 +26,8 @@ namespace StarSharksTool
 {
     public partial class AccountManagement : Form
     {
+        public int totalAccountCount = 0;
+        public int loadedAccountCount = 0;
         private readonly IDistributedCache cache;
         public AccountManagement()
         {
@@ -138,8 +140,18 @@ namespace StarSharksTool
             long accountCount = 0;
             Global.Accounts.Clear();
 
+
+            MethodInvoker resetLoginProgressMI = new MethodInvoker(() =>
+            {
+                this.totalAccountCount = appSettings.Accounts.Count;
+                this.loadedAccountCount = 0;
+                processLbl.Text = $"账号登录进度 0 / {appSettings.Accounts.Count}";
+                progressBar1.Value = 0;
+            });
+
             if (appSettings.Accounts.Count > 0)
             {
+                BeginInvoke(resetLoginProgressMI);
                 try
                 {
                     var c = appSettings.Accounts[0].DecryptedPrivateKey;
@@ -151,7 +163,42 @@ namespace StarSharksTool
                 }
             }
 
-            var loginResponses = appSettings.Accounts.Select(c => Services.Service.Login(new Account(c.DecryptedPrivateKey, 56), c.Alias, Global.Cache)).ToList();
+
+            MethodInvoker accountLoginMI = new MethodInvoker(() =>
+            {
+                this.loadedAccountCount = this.loadedAccountCount + 1;
+                var progressPercentage = ((double)this.loadedAccountCount / (double)this.totalAccountCount) * 100;
+                if (progressPercentage > 100)
+                {
+                    progressPercentage = 100;
+                }
+                this.progressBar1.Value = (int)progressPercentage;
+                processLbl.Text = $"账号登录进度 {this.loadedAccountCount} / {appSettings.Accounts.Count}";
+            });
+
+
+
+            MethodInvoker resetSharkLoadMI = new MethodInvoker(() =>
+            {
+                this.totalAccountCount = appSettings.Accounts.Count;
+                this.loadedAccountCount = 0;
+                processLbl.Text = $"鲨鱼加载进度 0 / {appSettings.Accounts.Count}";
+                progressBar1.Value = 0;
+            });
+
+            MethodInvoker sharkLoadMI = new MethodInvoker(() =>
+            {
+                this.loadedAccountCount = this.loadedAccountCount + 1;
+                var progressPercentage = ((double)this.loadedAccountCount / (double)this.totalAccountCount) * 100;
+                if (progressPercentage > 100)
+                {
+                    progressPercentage = 100;
+                }
+                this.progressBar1.Value = (int)progressPercentage;
+                processLbl.Text = $"鲨鱼加载进度 {this.loadedAccountCount} / {appSettings.Accounts.Count}";
+            });
+
+            var loginResponses = appSettings.Accounts.Select(c => Services.Service.Login(new Account(c.DecryptedPrivateKey, 56), c.Alias, Global.Cache, 0, () => { BeginInvoke(accountLoginMI); })).ToList();
             await Task.WhenAll(loginResponses);
             var accountInfos = loginResponses.ToDictionary(c => c.Result.Address.ToLower(), c => c.Result);
 
@@ -167,6 +214,7 @@ namespace StarSharksTool
                     loadFinished = true;
                     break;
                 }
+                BeginInvoke(resetSharkLoadMI);
                 await Parallel.ForEachAsync(waitingLoadAddresses, new ParallelOptions { MaxDegreeOfParallelism = 4 }, async (address, cancelToken) =>
                 {
                 GET_RETRY:
@@ -194,8 +242,9 @@ namespace StarSharksTool
                             throw new Exception();
                         }
                         accountDetailInfo.Add(address, (sharkAccountInfo.Result, sharks.Result, seaBalanceOfFunctionReturn.Result, sssBalanceOfFunctionReturn.Result, bnbBalance.Result));
+                        BeginInvoke(sharkLoadMI);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Global.GetLogger("AccountManagement").LogError(e, e.Message);
                         goto GET_RETRY;
@@ -305,7 +354,7 @@ namespace StarSharksTool
                         };
 
                         var quickConnectButton = new Button();
-                        quickConnectButton.Text = "ADB登录";
+                        quickConnectButton.Text = "雷电登录";
                         quickConnectButton.Location = new Point(290, 0);
                         quickConnectButton.Click += (object? sender, EventArgs e) =>
                         {
@@ -341,13 +390,24 @@ namespace StarSharksTool
                         };
 
                         var copyAddressButton = new Button();
-                        copyAddressButton.Text = "复制";
+                        copyAddressButton.Text = "复制地址";
                         copyAddressButton.Location = new Point(430, 0);
                         copyAddressButton.Click += (object? sender, EventArgs e) =>
                         {
                             Clipboard.SetDataObject(bscAccount.Address);
+                            MessageBox.Show("复制成功");
                         };
 
+                        var copyLinkButton = new Button();
+                        copyLinkButton.Text = "复制代打链接";
+                        copyLinkButton.Location = new Point(500, 0);
+                        copyLinkButton.Width = 100;
+                        copyLinkButton.Click += async (object? sender, EventArgs e) =>
+                        {
+                            var link = await Services.Service.CopyGameToken(bscAccount.Address);
+                            Clipboard.SetDataObject(link);
+                            MessageBox.Show("复制成功");
+                        };
 
 
                         var groupBox = new GroupBox();
@@ -361,12 +421,13 @@ namespace StarSharksTool
                         groupBox.Controls.Add(quickConnectButton);
                         groupBox.Controls.Add(withdrawButton);
                         groupBox.Controls.Add(copyAddressButton);
+                        groupBox.Controls.Add(copyLinkButton);
 
                         flowLayoutPanel1.Controls.Add(groupBox);
                         Global.Accounts.Add(account);
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Global.GetLogger("AccountManagement").LogError(e, e.Message);
                     goto RETRY;
@@ -610,7 +671,7 @@ namespace StarSharksTool
             // Width - 29;
             // Height - 154;
             flowLayoutPanel1.Width = this.Width - 29;
-            flowLayoutPanel1.Height = this.Height - 154;
+            flowLayoutPanel1.Height = this.Height - 124;
         }
     }
 }

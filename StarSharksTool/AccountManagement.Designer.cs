@@ -44,6 +44,8 @@
             this.label_bnb_quantity = new System.Windows.Forms.Label();
             this.label_sea_quantity = new System.Windows.Forms.Label();
             this.label_u_sea_quantity = new System.Windows.Forms.Label();
+            this.processLbl = new System.Windows.Forms.Label();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.panel4.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,9 +53,9 @@
             // 
             this.flowLayoutPanel1.AutoScroll = true;
             this.flowLayoutPanel1.BackColor = System.Drawing.SystemColors.Control;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(5, 40);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(5, 56);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(1406, 756);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(1406, 740);
             this.flowLayoutPanel1.TabIndex = 0;
             // 
             // button1
@@ -215,10 +217,28 @@
             this.label_u_sea_quantity.TabIndex = 9;
             this.label_u_sea_quantity.Text = "u-SEA：0";
             // 
+            // processLbl
+            // 
+            this.processLbl.AutoSize = true;
+            this.processLbl.Location = new System.Drawing.Point(1257, 33);
+            this.processLbl.Name = "processLbl";
+            this.processLbl.Size = new System.Drawing.Size(87, 17);
+            this.processLbl.TabIndex = 13;
+            this.processLbl.Text = "加载进度 0 / 0";
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Location = new System.Drawing.Point(8, 27);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(1243, 23);
+            this.progressBar1.TabIndex = 12;
+            // 
             // AccountManagement
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
             this.ClientSize = new System.Drawing.Size(1419, 871);
+            this.Controls.Add(this.processLbl);
+            this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.label_u_sea_quantity);
             this.Controls.Add(this.label_sea_quantity);
             this.Controls.Add(this.label_bnb_quantity);
@@ -254,5 +274,7 @@
         private Button openCurrentFolder;
         private Button button3;
         private Button batchRent;
+        private Label processLbl;
+        private ProgressBar progressBar1;
     }
 }

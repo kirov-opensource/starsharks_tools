@@ -106,7 +106,8 @@ namespace StarSharksTool.Services
                     }
                 }
             }
-            catch (Exception ex){
+            catch (Exception ex)
+            {
 
                 Global.GetLogger("SharkManagement").LogError(ex, ex.Message);
                 throw ex;
@@ -179,7 +180,7 @@ namespace StarSharksTool.Services
                     return responseModel;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Global.GetLogger("Service").LogError(e, e.Message);
                 return new MarketRentResponseModel { Data = new Models.RentModels.Data { Sharks = new List<Shark> { } } };
@@ -464,7 +465,7 @@ namespace StarSharksTool.Services
             var signer1 = new EthereumMessageSigner();
             return signer1.EncodeUTF8AndSign(message, new EthECKey(privateKey));
         }
-        internal static async Task<(string WebsiteToken, string GameToken, string Address, Account Account, string Alias)> Login(Account account, string alias, Microsoft.Extensions.Caching.Distributed.IDistributedCache? cache, int maxRetry = 0)
+        internal static async Task<(string WebsiteToken, string GameToken, string Address, Account Account, string Alias)> Login(Account account, string alias, Microsoft.Extensions.Caching.Distributed.IDistributedCache? cache, int maxRetry = 0, Action callback = null)
         {
             try
             {
@@ -474,6 +475,7 @@ namespace StarSharksTool.Services
                     var responseModel = JsonConvert.DeserializeObject<ResponseModel<LoginResponseModel>>(content);
                     if (responseModel?.Data != null)
                     {
+                        callback();
                         return (responseModel!.Data!.Authorization!.Remove(0, 7), responseModel!.Data!.QRCode!, account.Address, account, alias);
                     }
                 }
@@ -497,17 +499,42 @@ namespace StarSharksTool.Services
                     await cache.SetStringAsync($"StarsharkToken:{account.Address.ToLower()}", content);
                     if (responseModel?.Data != null)
                     {
+                        callback();
                         return (responseModel!.Data!.Authorization!.Remove(0, 7), responseModel!.Data!.QRCode!, account.Address, account, alias);
                     }
-                    return await Login(account, alias, cache);
+                    return await Login(account, alias, cache, callback: callback);
                 }
             }
             catch (Exception e)
             {
                 Global.GetLogger("Service").LogError(e, e.Message);
-                return await Login(account, alias, cache, maxRetry);
+                return await Login(account, alias, cache, maxRetry, callback: callback);
             }
         }
+        internal static async Task<string> CopyGameToken(string address)
+        {
+            var account = Global.Accounts.First(c => c.Account.Address.Equals(address, StringComparison.CurrentCultureIgnoreCase));
+            CancellationTokenSource cs = new CancellationTokenSource();
+            string url = "https://starsharks.com/go/auth-api/account/gen-game-token";
+            var sharkResp = new WithdrawResponseModel();
+            //Global.HTTPCLIENT
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+            httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", account.WebsiteToken);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(new { }), Encoding.UTF8, "application/json");
+            var client = Global.HTTPCLIENT;
+            {
+                var httpResponse = await client.SendAsync(httpRequestMessage);
+                var content = await httpResponse.Content.ReadAsStringAsync();
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    Global.GetLogger("Service").LogError($"{url} 失败: {content}");
+                    throw new HttpRequestException();
+                }
+                var obj = JsonConvert.DeserializeObject<dynamic>(content);
+                return $"https://starsharks.com/market/link-game?code={obj?.data.sid}";
+            }
+        }
+
         internal static async Task<string> RandomString()
         {
             var httpClient = Global.HTTPCLIENT;
