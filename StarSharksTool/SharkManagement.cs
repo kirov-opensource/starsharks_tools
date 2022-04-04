@@ -181,6 +181,10 @@ namespace StarSharksTool
         private void ListBoxMouseDown(object sender, MouseEventArgs e)
         {
             var box = sender as ListBox;
+            if (box.Items.Count == 0)
+            {
+                return;
+            }
             box.DoDragDrop(box.Items[box.SelectedIndex].ToString(), DragDropEffects.Move);
         }
 

@@ -145,7 +145,7 @@ namespace StarSharksTool.Services
                 req.Morale = new List<int> { 1, 100 + r.Next(1, 50) };
                 req.Hp = new List<int> { 1, 100 + r.Next(1, 50) };
                 req.Speed = new List<int> { 1, 100 + r.Next(1, 50) };
-                req.RentExceptGain = new List<int> { 1, 13 + step + maxPrice };
+                req.RentExceptGain = new List<int> { maxPrice, 13 + step };
                 req.Star = level;
 
                 if (step % 2 == 0)
@@ -174,7 +174,7 @@ namespace StarSharksTool.Services
                         responseModel.Data.Sharks = responseModel.Data.Sharks.Where(c =>
                         {
                             var price = (int)double.Parse(c.Sheet.RentExceptGain);
-                            return maxPrice >= price;
+                            return maxPrice == price;
                         }).ToList();
                     }
                     return responseModel;

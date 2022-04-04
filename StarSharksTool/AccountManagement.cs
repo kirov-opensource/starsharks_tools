@@ -671,7 +671,7 @@ namespace StarSharksTool
             // Width - 29;
             // Height - 154;
             flowLayoutPanel1.Width = this.Width - 29;
-            flowLayoutPanel1.Height = this.Height - 124;
+            flowLayoutPanel1.Height = this.Height - 164;
         }
     }
 }

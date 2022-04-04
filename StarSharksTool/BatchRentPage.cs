@@ -328,7 +328,7 @@ namespace StarSharksTool
                 }
                 else
                 {
-                    RentHistory[(sharkId, maxPrice)] = $"没租到|{resp.Item2}";
+                    RentHistory[(sharkId, maxPrice)] = $"没租到|{(resp.Item2.Equals(string.Empty) ? "扣手续费" : resp.Item2)}";
                 }
             }
             catch (Exception e)

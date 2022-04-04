@@ -111,9 +111,9 @@
             this.label1.Location = new System.Drawing.Point(460, 11);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(50, 17);
+            this.label1.Size = new System.Drawing.Size(41, 17);
             this.label1.TabIndex = 5;
-            this.label1.Text = "价格<=";
+            this.label1.Text = "价格=";
             // 
             // priceTextbox
             // 
